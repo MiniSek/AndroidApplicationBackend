@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="paypal.sdk.checkout" type="repository">
+    <properties maven-id="com.paypal.sdk:checkout-sdk:1.0.2" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/paypal/sdk/checkout-sdk/1.0.2/checkout-sdk-1.0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/paypal/paypalhttp/1.0.0/paypalhttp-1.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
