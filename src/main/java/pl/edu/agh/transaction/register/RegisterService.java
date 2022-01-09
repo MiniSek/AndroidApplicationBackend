@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDao;
+import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 
 import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.NON_PREMIUM;
@@ -16,12 +16,12 @@ import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.NON_PR
 @Service
 public class RegisterService {
     private final PasswordEncoder passwordEncoder;
-    private final ClientDao clientDao;
+    private final ClientDaoServiceLayer clientDaoServiceLayer;
 
     @Autowired
-    public RegisterService(PasswordEncoder passwordEncoder, ClientDao clientDao) {
+    public RegisterService(PasswordEncoder passwordEncoder, ClientDaoServiceLayer clientDaoServiceLayer) {
         this.passwordEncoder = passwordEncoder;
-        this.clientDao = clientDao;
+        this.clientDaoServiceLayer = clientDaoServiceLayer;
     }
 
     public ResponseEntity<String> addNewClient(RegisterRequest registerRequest) {
@@ -29,7 +29,7 @@ public class RegisterService {
             return new ResponseEntity<>("Register failure - email is not consistent with RFC822", HttpStatus.BAD_REQUEST);
 
         try {
-            if(clientDao.isClientInDatabase(registerRequest.getEmail()))
+            if(clientDaoServiceLayer.isClientInDatabase(registerRequest.getEmail()))
                 return new ResponseEntity<>("Register failure - email taken", HttpStatus.BAD_REQUEST);
         } catch(IllegalDatabaseState e) {
             return new ResponseEntity<>("Register failure - server internal failure", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -38,7 +38,7 @@ public class RegisterService {
         Client newClient = new Client(registerRequest.getFirstName(), registerRequest.getLastName(),
                 registerRequest.getEmail(), passwordEncoder.encode(registerRequest.getPassword()),
                 Sets.newHashSet(new SimpleGrantedAuthority(NON_PREMIUM.name())), null, null, null);
-        clientDao.insert(newClient);
+        clientDaoServiceLayer.insert(newClient);
 
         return new ResponseEntity<>("Registration successful", HttpStatus.OK);
     }

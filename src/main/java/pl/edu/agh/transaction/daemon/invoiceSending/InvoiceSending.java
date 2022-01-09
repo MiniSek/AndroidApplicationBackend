@@ -23,8 +23,6 @@ public class InvoiceSending extends TimerTask {
     private final InvoiceDao invoiceDao;
     private final EmailService emailService;
 
-    private final int hours = 24;
-
     @Autowired
     public InvoiceSending(InvoiceDao invoiceDao, EmailService emailService) {
         this.invoiceDao = invoiceDao;

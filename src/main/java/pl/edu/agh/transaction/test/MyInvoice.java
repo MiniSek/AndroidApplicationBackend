@@ -10,11 +10,11 @@ import pl.edu.agh.transaction.invoice.invoiceModels.Invoice;
 
 @RestController
 @RequestMapping(path="api/v1/invoices")
-public class Test {
+public class MyInvoice {
     private final InvoiceDao invoiceDao;
 
     @Autowired
-    public Test(InvoiceDao invoiceDao) {
+    public MyInvoice(InvoiceDao invoiceDao) {
         this.invoiceDao = invoiceDao;
     }
 

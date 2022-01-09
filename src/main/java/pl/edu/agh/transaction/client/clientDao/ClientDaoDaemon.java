@@ -4,6 +4,7 @@ import pl.edu.agh.transaction.client.clientModels.Client;
 
 import java.util.List;
 
-public interface ClientDaoDecorator {
+public interface ClientDaoDaemon {
     List<Client> getClients();
+    void update(String email, Client newClient);
 }

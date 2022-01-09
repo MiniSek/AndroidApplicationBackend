@@ -10,11 +10,11 @@ import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 import java.util.List;
 
 @Service
-public class ClientDaoService implements ClientDao, ClientDaoDecorator {
-    private final ClientRepository clientRepository;
+public class ClientDaoMongoDB implements ClientDao {
+    protected final ClientRepository clientRepository;
 
     @Autowired
-    public ClientDaoService(ClientRepository clientRepository) {
+    public ClientDaoMongoDB(ClientRepository clientRepository) {
         this.clientRepository = clientRepository;
     }
 

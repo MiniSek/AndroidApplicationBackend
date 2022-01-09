@@ -11,7 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.transaction.client.clientDao.ClientDao;
+import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.client.clientModels.Client;
 import pl.edu.agh.transaction.client.clientModels.roles.ClientRole;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
@@ -19,7 +19,7 @@ import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 import pl.edu.agh.transaction.exception.PriceListLoadException;
 import pl.edu.agh.transaction.invoice.invoiceDao.InvoiceDao;
 import pl.edu.agh.transaction.invoice.invoiceModels.Invoice;
-import pl.edu.agh.transaction.order.orderDao.OrderDao;
+import pl.edu.agh.transaction.order.orderDao.OrderDaoServiceLayer;
 import pl.edu.agh.transaction.premium.paypal.Credentials;
 import pl.edu.agh.transaction.priceList.PriceList;
 
@@ -30,15 +30,15 @@ import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.PREMIU
 
 @Service
 public class BuyPremiumService {
-    private final ClientDao clientDao;
-    private final OrderDao orderDao;
+    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final OrderDaoServiceLayer orderDaoServiceLayer;
     private final PriceList priceList;
     private final InvoiceDao invoiceDao;
 
     @Autowired
-    public BuyPremiumService(ClientDao clientDao, OrderDao orderDao, PriceList priceList, InvoiceDao invoiceDao) {
-        this.clientDao = clientDao;
-        this.orderDao = orderDao;
+    public BuyPremiumService(ClientDaoServiceLayer clientDaoServiceLayer, OrderDaoServiceLayer orderDaoServiceLayer, PriceList priceList, InvoiceDao invoiceDao) {
+        this.clientDaoServiceLayer = clientDaoServiceLayer;
+        this.orderDaoServiceLayer = orderDaoServiceLayer;
         this.priceList = priceList;
         this.invoiceDao = invoiceDao;
     }
@@ -46,7 +46,7 @@ public class BuyPremiumService {
     public ResponseEntity<String> buyPremium(String monthNumber) {
         try {
             String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Client client = clientDao.getClientByEmail(email);
+            Client client = clientDaoServiceLayer.getClientByEmail(email);
 
             if(client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())))
                 return new ResponseEntity<>("Premium failure - this client already has premium", HttpStatus.FORBIDDEN);
@@ -68,7 +68,7 @@ public class BuyPremiumService {
             List<PurchaseUnitRequest> purchaseUnits = new ArrayList<>();
             purchaseUnits.add(
                     new PurchaseUnitRequest().amountWithBreakdown(
-                            new AmountWithBreakdown().currencyCode("USD").value(String.valueOf(price))));
+                            new AmountWithBreakdown().currencyCode("PLN").value(String.valueOf(price))));
             orderRequest.purchaseUnits(purchaseUnits);
 
             OrdersCreateRequest request = new OrdersCreateRequest().requestBody(orderRequest);
@@ -81,7 +81,7 @@ public class BuyPremiumService {
             order = response.result();
 
             //TODO fix passing now date
-            orderDao.addOrder(order.id(), price, Integer.parseInt(monthNumber), new DateTime());
+            orderDaoServiceLayer.addOrder(order.id(), price, Integer.parseInt(monthNumber), new DateTime());
 
             //System.out.println("Order ID: " + order.id());
             //order.links().forEach(link -> System.out.println(link.rel() + " => " + link.method() + ":" + link.href()));
@@ -106,11 +106,11 @@ public class BuyPremiumService {
         try {
             String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            int monthNumber = orderDao.getOrder(orderID).getMonthNumber();
-            double price = orderDao.getOrder(orderID).getPrice();
-            orderDao.delete(orderID);
+            int monthNumber = orderDaoServiceLayer.getOrder(orderID).getMonthNumber();
+            double price = orderDaoServiceLayer.getOrder(orderID).getPrice();
+            orderDaoServiceLayer.delete(orderID);
 
-            Client client = clientDao.getClientByEmail(email);
+            Client client = clientDaoServiceLayer.getClientByEmail(email);
             Order order = null;
             OrdersCaptureRequest request = new OrdersCaptureRequest(orderID);
 
@@ -145,7 +145,7 @@ public class BuyPremiumService {
             client.setRoles(roles);
             client.setSubscriptionStartDate(subscriptionStartDate);
             client.setSubscriptionEndDate(subscriptionEndDate);
-            clientDao.update(email, client);
+            clientDaoServiceLayer.update(email, client);
 
             invoiceDao.addInvoice(new Invoice(client.getEmail(), client.getFirstName(), client.getLastName(), todayDate,
                     price, invoiceSubscriptionStartDate, invoiceSubscriptionEndDate));

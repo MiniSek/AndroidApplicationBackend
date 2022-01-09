@@ -3,7 +3,6 @@ package pl.edu.agh.transaction.login;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDao;
+import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 
@@ -23,16 +22,16 @@ import java.util.Date;
 @Service
 public class LoginService {
     private final AuthenticationManager authenticationManager;
-    private final ClientDao clientDao;
+    private final ClientDaoServiceLayer clientDaoServiceLayer;
 
     private final String jwtKey = "secretsecretsecretsecretsecretsecretsecretsecret";
     private final int validDays = 1;
     private final String authHeaderPrefix = "Bearer ";
 
     @Autowired
-    public LoginService(AuthenticationManager authenticationManager, ClientDao clientDao) {
+    public LoginService(AuthenticationManager authenticationManager, ClientDaoServiceLayer clientDaoServiceLayer) {
         this.authenticationManager = authenticationManager;
-        this.clientDao = clientDao;
+        this.clientDaoServiceLayer = clientDaoServiceLayer;
     }
 
     public ResponseEntity<String> login(LoginRequest loginRequest) {
@@ -40,7 +39,7 @@ public class LoginService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-            Client client = clientDao.getClientByEmail(loginRequest.getEmail());
+            Client client = clientDaoServiceLayer.getClientByEmail(loginRequest.getEmail());
 
             java.sql.Date expirationDate = java.sql.Date.valueOf(LocalDate.now().plusDays(validDays));
 
@@ -58,7 +57,7 @@ public class LoginService {
             client.setJwtToken(jwtToken);
 
             String clientEmail = loginRequest.getEmail();
-            clientDao.update(clientEmail, client);
+            clientDaoServiceLayer.update(clientEmail, client);
 
             return new ResponseEntity<>("Login successful", headers, HttpStatus.OK);
         } catch(BadCredentialsException | UsernameNotFoundException e) {

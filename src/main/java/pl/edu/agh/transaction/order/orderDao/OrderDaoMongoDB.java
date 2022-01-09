@@ -11,11 +11,11 @@ import pl.edu.agh.transaction.order.orderModels.OrderRepository;
 import java.util.List;
 
 @Service
-public class OrderDaoService implements OrderDao, OrderDaoDecorator {
-    private final OrderRepository orderRepository;
+public class OrderDaoMongoDB implements OrderDao {
+    protected final OrderRepository orderRepository;
 
     @Autowired
-    public OrderDaoService(OrderRepository orderRepository) {
+    public OrderDaoMongoDB(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
@@ -33,6 +33,7 @@ public class OrderDaoService implements OrderDao, OrderDaoDecorator {
             return orders.get(0);
         throw new ObjectNotFoundException(String.format("There is no such order with ID %s", orderID));
     }
+
 
     @Override
     public void delete(String orderID) throws IllegalDatabaseState, ObjectNotFoundException {

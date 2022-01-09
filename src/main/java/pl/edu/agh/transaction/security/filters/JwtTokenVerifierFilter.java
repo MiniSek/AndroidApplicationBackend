@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import pl.edu.agh.transaction.exception.AuthenticationException;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
-import pl.edu.agh.transaction.security.userDetailsService.UserDetailsServiceDecorated;
+import pl.edu.agh.transaction.security.userDetailsService.UserDetailsServiceFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -27,13 +27,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JwtTokenVerifierFilter extends OncePerRequestFilter {
-    private final UserDetailsServiceDecorated userDetailsServiceDecorated;
+    private final UserDetailsServiceFilter userDetailsServiceFilter;
 
     private final String jwtKey = "secretsecretsecretsecretsecretsecretsecretsecret";
     private final String authHeaderPrefix = "Bearer ";
 
-    public JwtTokenVerifierFilter(UserDetailsServiceDecorated userDetailsServiceDecorated) {
-        this.userDetailsServiceDecorated = userDetailsServiceDecorated;
+    public JwtTokenVerifierFilter(UserDetailsServiceFilter userDetailsServiceFilter) {
+        this.userDetailsServiceFilter = userDetailsServiceFilter;
     }
 
     @Override
@@ -58,6 +58,7 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
                 Claims body = jwsClaims.getBody();
 
                 String email = body.getSubject();
+
                 var roles = (List<Map<String, String>>)body.get("authorities");
 
                 Set<SimpleGrantedAuthority> simpleGrantedAuthorities = roles.stream()
@@ -67,7 +68,7 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
                 Authentication auth = new UsernamePasswordAuthenticationToken(email, null, simpleGrantedAuthorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-                if(!userDetailsServiceDecorated.isClientLogged(email))
+                if(!userDetailsServiceFilter.isClientLogged(email))
                     throw new AuthenticationException(String.format("Token %s was logged out", jwtToken));
             } catch(JwtException | IllegalDatabaseState | ObjectNotFoundException | AuthenticationException e) {
                 throw new IllegalStateException(String.format("Token %s cannot be trusted", jwtToken));

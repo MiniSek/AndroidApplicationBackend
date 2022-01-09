@@ -12,23 +12,23 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import pl.edu.agh.transaction.security.filters.JwtTokenVerifierFilter;
-import pl.edu.agh.transaction.security.userDetailsService.UserDetailsServiceDecorated;
+import pl.edu.agh.transaction.security.userDetailsService.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final PasswordEncoder passwordEncoder;
-    private final UserDetailsServiceDecorated userDetailsServiceDecorated;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
 
     @Autowired
-    public SecurityConfiguration(UserDetailsServiceDecorated userDetailsServiceDecorated, PasswordEncoder passwordEncoder) {
-        this.userDetailsServiceDecorated = userDetailsServiceDecorated;
+    public SecurityConfiguration(UserDetailsServiceImpl userDetailsServiceImpl, PasswordEncoder passwordEncoder) {
+        this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsServiceDecorated);
+        auth.userDetailsService(userDetailsServiceImpl);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests().antMatchers("/api/v1/register", "/api/v1/login").permitAll();
         http.authorizeRequests().anyRequest().authenticated();
-        http.addFilterAfter(new JwtTokenVerifierFilter(userDetailsServiceDecorated),
+        http.addFilterAfter(new JwtTokenVerifierFilter(userDetailsServiceImpl),
                 SecurityContextHolderAwareRequestFilter.class);
     }
 

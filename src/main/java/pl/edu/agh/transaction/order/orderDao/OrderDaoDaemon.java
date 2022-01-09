@@ -4,6 +4,7 @@ import pl.edu.agh.transaction.order.orderModels.Order;
 
 import java.util.List;
 
-public interface OrderDaoDecorator extends OrderDeleteDao {
+public interface OrderDaoDaemon {
     List<Order> getOrders();
+    void delete(String orderID);
 }

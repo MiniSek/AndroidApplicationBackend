@@ -3,6 +3,7 @@ package pl.edu.agh.transaction.image;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class ImageController {
         this.imageService = imageService;
     }
 
-    @PostMapping
+    @PostMapping(value = "image")
     public ResponseEntity<String> addImage(@RequestParam("imageType") String imageType, @RequestParam("image") MultipartFile image) {
         return imageService.addImage(imageType, image);
     }

@@ -18,6 +18,7 @@ public class EmailService {
     private final Session session;
     private final String fromEmail = "transaction.application.ms@gmail.com";
     private final String password = "gxdxrulvkzppwypl";
+    private final String personalEmail = "Frog-image-every-day";
 
     public EmailService() {
         this.properties = new Properties();
@@ -85,7 +86,7 @@ public class EmailService {
             message.addHeader("format", "flowed");
             message.addHeader("Content-Transfer-Encoding", "8bit");
 
-            message.setFrom(new InternetAddress("transaction.application.ms@gmail.com", "Frog-image-every-day"));
+            message.setFrom(new InternetAddress(fromEmail, personalEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail, false));
             message.setSentDate(new Date());
 

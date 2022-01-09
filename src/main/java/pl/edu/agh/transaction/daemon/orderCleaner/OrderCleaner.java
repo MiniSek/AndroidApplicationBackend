@@ -1,21 +1,21 @@
 package pl.edu.agh.transaction.daemon.orderCleaner;
 
-import pl.edu.agh.transaction.order.orderDao.OrderDaoDecorator;
+import pl.edu.agh.transaction.order.orderDao.OrderDaoDaemon;
 import pl.edu.agh.transaction.order.orderModels.Order;
 
 import java.util.TimerTask;
 
 public class OrderCleaner extends TimerTask {
-    private final OrderDaoDecorator orderDaoDecorator;
+    private final OrderDaoDaemon orderDaoDaemon;
 
-    public OrderCleaner(OrderDaoDecorator orderDaoDecorator) {
-        this.orderDaoDecorator = orderDaoDecorator;
+    public OrderCleaner(OrderDaoDaemon orderDaoDaemon) {
+        this.orderDaoDaemon = orderDaoDaemon;
     }
 
     @Override
     public void run() {
-        for(Order order : orderDaoDecorator.getOrders())
+        for(Order order : orderDaoDaemon.getOrders())
             if(order.getCreationDate().plusHours(3).isBeforeNow())
-                orderDaoDecorator.delete(order.getOrderID());
+                orderDaoDaemon.delete(order.getOrderID());
     }
 }

@@ -7,7 +7,6 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -20,7 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDao;
+import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.client.clientModels.roles.ClientRole;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
@@ -34,13 +33,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class ImageService {
-    private final ClientDao clientDao;
+    private final ClientDaoServiceLayer clientDaoServiceLayer;
     private final GridFsTemplate gridFsTemplate;
     private final GridFsOperations gridFsOperations;
 
     @Autowired
-    public ImageService(ClientDao clientDao, GridFsTemplate gridFsTemplate, GridFsOperations gridFsOperations) {
-        this.clientDao = clientDao;
+    public ImageService(ClientDaoServiceLayer clientDaoServiceLayer, GridFsTemplate gridFsTemplate, GridFsOperations gridFsOperations) {
+        this.clientDaoServiceLayer = clientDaoServiceLayer;
         this.gridFsTemplate = gridFsTemplate;
         this.gridFsOperations = gridFsOperations;
     }
@@ -74,7 +73,7 @@ public class ImageService {
         String email = String.valueOf(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         Client client;
         try {
-            client = clientDao.getClientByEmail(email);
+            client = clientDaoServiceLayer.getClientByEmail(email);
         } catch(IllegalDatabaseState e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch(ObjectNotFoundException e) {
