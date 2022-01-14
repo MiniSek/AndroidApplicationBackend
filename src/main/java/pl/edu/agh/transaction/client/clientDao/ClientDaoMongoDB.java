@@ -3,7 +3,6 @@ package pl.edu.agh.transaction.client.clientDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientModels.ClientRepository;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 

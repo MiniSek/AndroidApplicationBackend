@@ -1,7 +1,8 @@
-package pl.edu.agh.transaction.client.clientModels;
+package pl.edu.agh.transaction.client.clientDao;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import pl.edu.agh.transaction.client.clientModels.Client;
 
 import java.util.List;
 
