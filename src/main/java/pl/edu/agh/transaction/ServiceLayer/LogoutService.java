@@ -1,0 +1,37 @@
+package pl.edu.agh.transaction.ServiceLayer;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.transaction.DataAccessLayer.clientDao.ClientDaoServiceLayer;
+import pl.edu.agh.transaction.Utils.Model.Client;
+import pl.edu.agh.transaction.Utils.ServerException.IllegalDatabaseState;
+import pl.edu.agh.transaction.Utils.ServerException.ObjectNotFoundException;
+
+
+@Service
+public class LogoutService {
+    private final ClientDaoServiceLayer clientDaoServiceLayer;
+
+    @Autowired
+    public LogoutService(ClientDaoServiceLayer clientDaoServiceLayer) {
+        this.clientDaoServiceLayer = clientDaoServiceLayer;
+    }
+
+    public ResponseEntity<String> logout() {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+            Client client = clientDaoServiceLayer.getClientByEmail(email);
+            client.setJwtToken(null);
+            clientDaoServiceLayer.update(email, client);
+
+            return new ResponseEntity<>("Logout successful", HttpStatus.OK);
+        } catch(IllegalDatabaseState e) {
+            return new ResponseEntity<>("Logout failure - server internal failure", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch(ObjectNotFoundException e) {
+            return new ResponseEntity<>("Login failure - client not found", HttpStatus.NOT_FOUND);
+        }
+    }
+}
