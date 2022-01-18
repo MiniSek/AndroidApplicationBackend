@@ -3,6 +3,7 @@ package pl.edu.agh.transaction.login;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,14 @@ public class LoginService {
     private final AuthenticationManager authenticationManager;
     private final ClientDaoServiceLayer clientDaoServiceLayer;
 
-    private final String jwtKey = "secretsecretsecretsecretsecretsecretsecretsecret";
-    private final int validDays = 1;
-    private final String authHeaderPrefix = "Bearer ";
+    @Value("${JWT_KEY}")
+    private String JWT_KEY;
+
+    @Value("${JWT_VALID_DAYS}")
+    private Integer JWT_VALID_DAYS;
+
+    @Value("${JWT_AUTH_HEADER_PREFIX}")
+    private String JWT_AUTH_HEADER_PREFIX;
 
     @Autowired
     public LoginService(AuthenticationManager authenticationManager, ClientDaoServiceLayer clientDaoServiceLayer) {
@@ -41,18 +47,18 @@ public class LoginService {
 
             Client client = clientDaoServiceLayer.getClientByEmail(loginRequest.getEmail());
 
-            java.sql.Date expirationDate = java.sql.Date.valueOf(LocalDate.now().plusDays(validDays));
+            java.sql.Date expirationDate = java.sql.Date.valueOf(LocalDate.now().plusDays(JWT_VALID_DAYS));
 
             String jwtToken = Jwts.builder()
                     .setSubject(client.getEmail())
                     .claim("authorities", client.getRoles())
                     .setIssuedAt(new Date())
                     .setExpiration(expirationDate)
-                    .signWith(Keys.hmacShaKeyFor(jwtKey.getBytes()))
+                    .signWith(Keys.hmacShaKeyFor(JWT_KEY.getBytes()))
                     .compact();
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", authHeaderPrefix + jwtToken);
+            headers.add("Authorization", JWT_AUTH_HEADER_PREFIX + jwtToken);
 
             client.setJwtToken(jwtToken);
 

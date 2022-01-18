@@ -1,6 +1,7 @@
 package pl.edu.agh.transaction.priceList;
 
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class PriceListController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Pair<Integer, Double>>> getPrices() {
+    public ResponseEntity<List<Triplet<String, Integer, Double>>> getPrices() {
         return priceListService.getPrices();
     }
 }

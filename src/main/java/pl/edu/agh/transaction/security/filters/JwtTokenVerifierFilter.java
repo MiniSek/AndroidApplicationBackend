@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 public class JwtTokenVerifierFilter extends OncePerRequestFilter {
     private final UserDetailsServiceFilter userDetailsServiceFilter;
 
-    private final String jwtKey = "secretsecretsecretsecretsecretsecretsecretsecret";
-    private final String authHeaderPrefix = "Bearer ";
+    private final String JWT_KEY = "secretsecretsecretsecretsecretsecretsecretsecret";
+    private final String JWT_AUTH_HEADER_PREFIX = "Bearer ";
 
     public JwtTokenVerifierFilter(UserDetailsServiceFilter userDetailsServiceFilter) {
         this.userDetailsServiceFilter = userDetailsServiceFilter;
@@ -42,16 +42,16 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
         if(!(request.getServletPath().equals("/api/v1/login") || request.getServletPath().equals("/api/v1/register"))) {
             String authorizationHeader = request.getHeader("Authorization");
 
-            if (Strings.isNullOrEmpty(authorizationHeader) || !authorizationHeader.startsWith(authHeaderPrefix)) {
+            if (Strings.isNullOrEmpty(authorizationHeader) || !authorizationHeader.startsWith(JWT_AUTH_HEADER_PREFIX)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            String jwtToken=null;
+            String jwtToken = null;
             try {
-                jwtToken = authorizationHeader.replace(authHeaderPrefix, "");
+                jwtToken = authorizationHeader.replace(JWT_AUTH_HEADER_PREFIX, "");
                 Jws<Claims> jwsClaims = Jwts.parserBuilder().
-                        setSigningKey(Keys.hmacShaKeyFor(jwtKey.getBytes()))
+                        setSigningKey(Keys.hmacShaKeyFor(JWT_KEY.getBytes()))
                         .build()
                         .parseClaimsJws(jwtToken);
 

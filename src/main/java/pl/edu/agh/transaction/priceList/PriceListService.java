@@ -1,10 +1,12 @@
 package pl.edu.agh.transaction.priceList;
 
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.transaction.exception.PriceListLoadException;
 
 import java.util.List;
 
@@ -17,13 +19,11 @@ public class PriceListService {
         this.priceList = priceList;
     }
 
-    public ResponseEntity<List<Pair<Integer, Double>>> getPrices() {
-        List<Pair<Integer, Double>> prices = priceList.getPrices();
-        HttpStatus httpStatus;
-        if (prices == null)
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        else
-            httpStatus = HttpStatus.OK;
-        return new ResponseEntity<>(prices,httpStatus);
+    public ResponseEntity<List<Triplet<String, Integer, Double>>> getPrices() {
+        try {
+            return new ResponseEntity<>(priceList.getPrices(), HttpStatus.OK);
+        } catch(PriceListLoadException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

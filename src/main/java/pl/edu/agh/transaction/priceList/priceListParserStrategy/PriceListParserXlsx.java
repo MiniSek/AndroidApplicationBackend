@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,12 +16,18 @@ import java.util.List;
 
 
 public class PriceListParserXlsx implements PriceListParser {
+    private final String PRICE_LIST_FILE_REL_PATH;
+
+    public PriceListParserXlsx(String PRICE_LIST_FILE_REL_PATH) {
+        this.PRICE_LIST_FILE_REL_PATH = PRICE_LIST_FILE_REL_PATH;
+    }
+
     @Override
-    public List<Pair<Integer, Double>> parsePriceList() {
+    public List<Triplet<String, Integer, Double>> parsePriceList() {
         Workbook workbook;
         try {
             String projectDirectoryPath = new File(".").getCanonicalPath();
-            String fileLocation = projectDirectoryPath + "\\data\\priceLists\\priceList.xlsx";
+            String fileLocation = projectDirectoryPath + PRICE_LIST_FILE_REL_PATH;
             FileInputStream file = new FileInputStream(fileLocation);
             workbook = new XSSFWorkbook(file);
         } catch (IOException e) {
@@ -28,30 +35,22 @@ public class PriceListParserXlsx implements PriceListParser {
             return null;
         }
 
-        List<Pair<Integer, Double>> prices = new ArrayList<>();
+        List<Triplet<String, Integer, Double>> prices = new ArrayList<>();
 
         Sheet sheet = workbook.getSheetAt(0);
 
-        int monthNumber = 0, i = 0, j;
-        double price = 0;
-        boolean hasContent;
+        String id;
+        int monthNumber, i = 0;
+        double price;
 
-        for (Row row : sheet) {
+        for(Row row : sheet) {
             if(i > 0) {
-                j = 0;
-                hasContent = false;
-                for (Cell cell : row) {
-                    if(!cell.toString().isEmpty()) {
-                        hasContent = true;
-                        if (j == 0)
-                            monthNumber = (int) Double.parseDouble(cell.toString());
-                        else if (j == 1)
-                            price = Double.parseDouble(cell.toString());
-                    }
-                    j++;
+                if(row.getCell(0) != null && row.getCell(1) != null && row.getCell(2) != null) {
+                    id = row.getCell(0).toString();
+                    monthNumber = (int) Double.parseDouble(row.getCell(1).toString());
+                    price = Double.parseDouble(row.getCell(2).toString());
+                    prices.add(new Triplet<>(id, monthNumber, price));
                 }
-                if(hasContent)
-                    prices.add(new Pair<>(monthNumber, price));
             }
             i++;
         }

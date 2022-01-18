@@ -11,6 +11,7 @@ import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 
 
+
 @Service
 public class ClientService {
     private final ClientDaoServiceLayer clientDaoServiceLayer;

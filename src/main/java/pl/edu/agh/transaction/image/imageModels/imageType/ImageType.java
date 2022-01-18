@@ -1,4 +1,4 @@
-package pl.edu.agh.transaction.image.imageType;
+package pl.edu.agh.transaction.image.imageModels.imageType;
 
 public enum ImageType {
     PREMIUM_TYPE("premium_type"),

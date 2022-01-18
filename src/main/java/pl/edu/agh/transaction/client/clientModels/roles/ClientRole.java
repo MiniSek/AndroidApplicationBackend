@@ -1,11 +1,11 @@
 package pl.edu.agh.transaction.client.clientModels.roles;
 
 import com.google.common.collect.Sets;
-import pl.edu.agh.transaction.image.imageType.ImageType;
+import pl.edu.agh.transaction.image.imageModels.imageType.ImageType;
 
 import java.util.Set;
 
-import static pl.edu.agh.transaction.image.imageType.ImageType.*;
+import static pl.edu.agh.transaction.image.imageModels.imageType.ImageType.*;
 
 public enum ClientRole {
     NON_PREMIUM(Sets.newHashSet(NON_PREMIUM_TYPE)),

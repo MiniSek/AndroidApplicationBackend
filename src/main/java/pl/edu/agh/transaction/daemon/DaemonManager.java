@@ -8,14 +8,14 @@ import pl.edu.agh.transaction.daemon.invoiceSending.InvoiceSending;
 import pl.edu.agh.transaction.daemon.orderCleaner.OrderCleaner;
 import pl.edu.agh.transaction.daemon.paymentReminder.PaymentReminder;
 import pl.edu.agh.transaction.invoice.invoiceDao.InvoiceDao;
-import pl.edu.agh.transaction.order.orderDao.OrderDaoDaemon;
+import pl.edu.agh.transaction.order.orderDao.PaymentOrderDaoDaemon;
 
 import java.util.Calendar;
 import java.util.Timer;
 
 @Service
 public class DaemonManager {
-    private final OrderDaoDaemon orderDaoDaemon;
+    private final PaymentOrderDaoDaemon paymentOrderDaoDaemon;
     private final ClientDaoDaemon clientDaoDaemon;
     private final EmailService emailService;
     private final InvoiceDao invoiceDao;
@@ -43,9 +43,9 @@ public class DaemonManager {
     private final int clientRoleCleanerMillisecond = 0;
 
     @Autowired
-    public DaemonManager(OrderDaoDaemon orderDaoDaemon, ClientDaoDaemon clientDaoDaemon,
+    public DaemonManager(PaymentOrderDaoDaemon paymentOrderDaoDaemon, ClientDaoDaemon clientDaoDaemon,
                          EmailService emailService, InvoiceDao invoiceDao) {
-        this.orderDaoDaemon = orderDaoDaemon;
+        this.paymentOrderDaoDaemon = paymentOrderDaoDaemon;
         this.clientDaoDaemon = clientDaoDaemon;
         this.emailService = emailService;
         this.invoiceDao = invoiceDao;
@@ -62,7 +62,7 @@ public class DaemonManager {
 
         setCalendarTime(calendar, orderCleanerHourOfDay, orderCleanerMinute,
                 orderCleanerSecond, orderCleanerMillisecond);
-        timer.scheduleAtFixedRate(new OrderCleaner(orderDaoDaemon),
+        timer.scheduleAtFixedRate(new OrderCleaner(paymentOrderDaoDaemon),
                 calendar.getTime(), 24 * 60 * 60 * 1000);
 
         setCalendarTime(calendar, paymentReminderHourOfDay, paymentReminderMinute,

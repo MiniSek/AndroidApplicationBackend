@@ -26,13 +26,13 @@ public class ImageController {
         return imageService.addImage(imageType, image);
     }
 
-    @GetMapping(value = "image/{title}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<Resource> getImage(@PathVariable String title) {
-        return imageService.getImage(title);
+    @GetMapping(value = "image/{name}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<Resource> getImage(@PathVariable String name) {
+        return imageService.getImage(name);
     }
 
-    @GetMapping(value = "image_titles")
-    public ResponseEntity<List<String>> getImagesTitle() {
-        return imageService.getImagesTitle();
+    @GetMapping(value = "image_names")
+    public ResponseEntity<List<String>> getImageNames() {
+        return imageService.getImageNames();
     }
 }
