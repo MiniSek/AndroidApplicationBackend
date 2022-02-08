@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
@@ -13,19 +13,19 @@ import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 
 @Service
 public class LogoutService {
-    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final ClientDao clientDao;
 
     @Autowired
-    public LogoutService(ClientDaoServiceLayer clientDaoServiceLayer) {
-        this.clientDaoServiceLayer = clientDaoServiceLayer;
+    public LogoutService(ClientDao clientDao) {
+        this.clientDao = clientDao;
     }
 
     public ResponseEntity<String> logout() {
         try {
             String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-            Client client = clientDaoServiceLayer.getClientByEmail(email);
+            Client client = clientDao.getClientByEmail(email);
             client.setJwtToken(null);
-            clientDaoServiceLayer.update(email, client);
+            clientDao.update(email, client);
 
             return new ResponseEntity<>("Logout successful", HttpStatus.OK);
         } catch(IllegalDatabaseState e) {

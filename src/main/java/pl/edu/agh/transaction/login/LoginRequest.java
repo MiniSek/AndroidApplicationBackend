@@ -1,7 +1,7 @@
 package pl.edu.agh.transaction.login;
 
 public class LoginRequest {
-    private final  String email;
+    private final String email;
     private final String password;
 
     public LoginRequest(String email, String password) {

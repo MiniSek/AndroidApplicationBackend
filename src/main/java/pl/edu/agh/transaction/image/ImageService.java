@@ -8,8 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.client.clientModels.roles.ClientRole;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
@@ -21,12 +21,12 @@ import java.util.List;
 
 @Service
 public class ImageService {
-    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final ClientDao clientDao;
     private final ImageDao imageDao;
 
     @Autowired
-    public ImageService(ClientDaoServiceLayer clientDaoServiceLayer, ImageDao imageDao) {
-        this.clientDaoServiceLayer = clientDaoServiceLayer;
+    public ImageService(ClientDao clientDao, ImageDao imageDao) {
+        this.clientDao = clientDao;
         this.imageDao = imageDao;
     }
 
@@ -51,7 +51,7 @@ public class ImageService {
         String email = String.valueOf(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         Client client;
         try {
-            client = clientDaoServiceLayer.getClientByEmail(email);
+            client = clientDao.getClientByEmail(email);
         } catch(IllegalDatabaseState e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch(ObjectNotFoundException e) {

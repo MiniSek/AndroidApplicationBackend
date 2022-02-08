@@ -19,12 +19,12 @@ public class Client {
     private String email;
     private String password;
     private Set<GrantedAuthority> roles;
-    private DateTime subscriptionStartDate;
-    private DateTime subscriptionEndDate;
+    private LocalDate subscriptionStartDate;
+    private LocalDate subscriptionEndDate;
     private String jwtToken;
 
     public Client(String firstName, String lastName, String email, String password, Set<GrantedAuthority> roles,
-                  DateTime subscriptionStartDate, DateTime subscriptionEndDate, String jwtToken) {
+                  LocalDate subscriptionStartDate, LocalDate subscriptionEndDate, String jwtToken) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

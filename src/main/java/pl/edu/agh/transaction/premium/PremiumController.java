@@ -1,8 +1,10 @@
 package pl.edu.agh.transaction.premium;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.edu.agh.transaction.login.LoginRequest;
 
 @RestController
 @RequestMapping(path="api/v1")
@@ -15,12 +17,14 @@ public class PremiumController {
     }
 
     @PostMapping(value = "buy_premium")
-    public ResponseEntity<String> buyPremium(@RequestParam("premiumId") String premiumId) {
-        return premiumService.buyPremium(premiumId);
+    public ResponseEntity<String> buyPremium(@RequestBody ObjectNode buyPremiumRequest) {
+        String premiumId = buyPremiumRequest.get("premiumId").toString();
+        return premiumService.buyPremium(premiumId.substring(1, premiumId.length()-1));
     }
 
     @PutMapping(value = "approve_payment")
-    public ResponseEntity<String> approvePayment(@RequestParam("orderId") String orderId) {
-        return premiumService.approvePayment(orderId);
+    public ResponseEntity<String> approvePayment(@RequestBody ObjectNode approvePaymentRequest) {
+        String orderId = approvePaymentRequest.get("orderId").toString();
+        return premiumService.approvePayment(orderId.substring(1, orderId.length()-1));
     }
 }

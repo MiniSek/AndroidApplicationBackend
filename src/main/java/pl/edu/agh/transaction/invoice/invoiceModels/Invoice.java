@@ -1,7 +1,7 @@
 package pl.edu.agh.transaction.invoice.invoiceModels;
 
 import lombok.Data;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,14 +14,14 @@ public class Invoice {
     private String clientFirstName;
     private String clientLastName;
 
-    private DateTime paymentDate;
+    private LocalDate paymentDate;
     private double price;
 
-    private DateTime subscriptionStartDate;
-    private DateTime subscriptionEndDate;
+    private LocalDate subscriptionStartDate;
+    private LocalDate subscriptionEndDate;
 
-    public Invoice(String clientEmail, String clientFirstName, String clientLastName, DateTime paymentDate,
-                   double price, DateTime subscriptionStartDate, DateTime subscriptionEndDate) {
+    public Invoice(String clientEmail, String clientFirstName, String clientLastName, LocalDate paymentDate,
+                   double price, LocalDate subscriptionStartDate, LocalDate subscriptionEndDate) {
         this.clientEmail = clientEmail;
         this.clientFirstName = clientFirstName;
         this.clientLastName = clientLastName;

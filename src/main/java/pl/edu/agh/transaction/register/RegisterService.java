@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 
 import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.NON_PREMIUM;
@@ -16,20 +16,20 @@ import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.NON_PR
 @Service
 public class RegisterService {
     private final PasswordEncoder passwordEncoder;
-    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final ClientDao clientDao;
 
     @Autowired
-    public RegisterService(PasswordEncoder passwordEncoder, ClientDaoServiceLayer clientDaoServiceLayer) {
+    public RegisterService(PasswordEncoder passwordEncoder, ClientDao clientDao) {
         this.passwordEncoder = passwordEncoder;
-        this.clientDaoServiceLayer = clientDaoServiceLayer;
+        this.clientDao = clientDao;
     }
 
     public ResponseEntity<String> addNewClient(RegisterRequest registerRequest) {
-        if(!isConsistentWithRFC822(registerRequest.getEmail()))
-            return new ResponseEntity<>("Register failure - email is not consistent with RFC822", HttpStatus.BAD_REQUEST);
+        if(!isRequestCorrect(registerRequest))
+            return new ResponseEntity<>("Register failure - sth is not correct", HttpStatus.BAD_REQUEST);
 
         try {
-            if(clientDaoServiceLayer.isClientInDatabase(registerRequest.getEmail()))
+            if(clientDao.isClientInDatabase(registerRequest.getEmail()))
                 return new ResponseEntity<>("Register failure - email taken", HttpStatus.BAD_REQUEST);
         } catch(IllegalDatabaseState e) {
             return new ResponseEntity<>("Register failure - server internal failure", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -38,13 +38,47 @@ public class RegisterService {
         Client newClient = new Client(registerRequest.getFirstName(), registerRequest.getLastName(),
                 registerRequest.getEmail(), passwordEncoder.encode(registerRequest.getPassword()),
                 Sets.newHashSet(new SimpleGrantedAuthority(NON_PREMIUM.name())), null, null, null);
-        clientDaoServiceLayer.insert(newClient);
+        clientDao.insert(newClient);
 
         return new ResponseEntity<>("Registration successful", HttpStatus.OK);
     }
 
-    //TODO : fix it
-    private boolean isConsistentWithRFC822(String email) {
-        return email.contains("@");
+    private boolean isRequestCorrect(RegisterRequest registerRequest) {
+        String firstName = registerRequest.getFirstName(),
+                lastName = registerRequest.getLastName(),
+                email = registerRequest.getEmail(),
+                password = registerRequest.getPassword();
+
+        for(int i=0; i<firstName.length(); i++)
+            if(!isLetter(firstName.charAt(i)))
+                return false;
+
+        for(int i=0; i<lastName.length(); i++)
+            if(!(isLetter(lastName.charAt(i)) || isDash(lastName.charAt(i))))
+                return false;
+
+        for(int i=0; i<email.length(); i++)
+            if(!(isLetter(email.charAt(i)) || isDash(email.charAt(i)) ||
+                    isDigit(email.charAt(i)) || email.charAt(i) == '@'))
+                return false;
+        if(!email.contains("@") || (email.indexOf('@') > 0 && email.indexOf('@') < email.length()-1))
+            return false;
+
+        for(int i=0; i<password.length(); i++)
+            if(!(isLetter(password.charAt(i)) || isDash(password.charAt(i)) || isDigit(password.charAt(i))))
+                return false;
+        return true;
+    }
+
+    private boolean isLetter(char c) {
+        return (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
+    }
+
+    private boolean isDash(char c) {
+        return c == 45;
+    }
+
+    private boolean isDigit(char c) {
+        return c >= 48 && c <= 57;
     }
 }

@@ -1,4 +1,12 @@
 package pl.edu.agh.transaction.order.orderDao;
 
-public interface PaymentOrderDao extends PaymentOrderDaoServiceLayer, PaymentOrderDaoDaemon {
+import pl.edu.agh.transaction.order.orderModels.PaymentOrder;
+
+import java.util.List;
+
+public interface PaymentOrderDao {
+    void insert(PaymentOrder paymentOrder);
+    PaymentOrder getOrder(String orderID);
+    List<PaymentOrder> getOrders();
+    void delete(String orderID);
 }

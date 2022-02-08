@@ -1,6 +1,7 @@
 package pl.edu.agh.transaction.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,10 +21,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsServiceImpl;
 
+    private final String JWT_KEY;
+    private final String JWT_AUTH_HEADER_PREFIX;
+
     @Autowired
-    public SecurityConfiguration(UserDetailsServiceImpl userDetailsServiceImpl, PasswordEncoder passwordEncoder) {
+    public SecurityConfiguration(UserDetailsServiceImpl userDetailsServiceImpl, PasswordEncoder passwordEncoder,
+                                 @Value("${JWT_KEY}") String JWT_KEY,
+                                 @Value("${JWT_AUTH_HEADER_PREFIX}") String JWT_AUTH_HEADER_PREFIX) {
         this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.passwordEncoder = passwordEncoder;
+
+        this.JWT_KEY = JWT_KEY;
+        this.JWT_AUTH_HEADER_PREFIX = JWT_AUTH_HEADER_PREFIX;
     }
 
     @Override
@@ -37,7 +46,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests().antMatchers("/api/v1/register", "/api/v1/login").permitAll();
         http.authorizeRequests().anyRequest().authenticated();
-        http.addFilterAfter(new JwtTokenVerifierFilter(userDetailsServiceImpl),
+        http.addFilterAfter(new JwtTokenVerifierFilter(userDetailsServiceImpl, JWT_KEY, JWT_AUTH_HEADER_PREFIX),
                 SecurityContextHolderAwareRequestFilter.class);
     }
 

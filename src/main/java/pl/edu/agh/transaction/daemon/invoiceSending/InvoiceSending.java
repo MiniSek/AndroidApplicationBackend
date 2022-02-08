@@ -1,57 +1,44 @@
 package pl.edu.agh.transaction.daemon.invoiceSending;
 
-import com.lowagie.text.DocumentException;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
-import pl.edu.agh.transaction.daemon.EmailService;
+import org.joda.time.LocalDate;
+import pl.edu.agh.transaction.daemon.utils.EmailService;
+import pl.edu.agh.transaction.daemon.utils.InvoiceBuilder;
+import pl.edu.agh.transaction.exception.InvoiceCreatingException;
+import pl.edu.agh.transaction.exception.MessageSendingException;
 import pl.edu.agh.transaction.invoice.invoiceDao.InvoiceDao;
 import pl.edu.agh.transaction.invoice.invoiceModels.Invoice;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimerTask;
+import java.util.*;
 
 
 public class InvoiceSending extends TimerTask {
     private final InvoiceDao invoiceDao;
     private final EmailService emailService;
+    private final InvoiceBuilder invoiceBuilder;
 
-    @Autowired
-    public InvoiceSending(InvoiceDao invoiceDao, EmailService emailService) {
+    private final String SUBJECT;
+    private final String TEXT;
+
+    public InvoiceSending(InvoiceDao invoiceDao, EmailService emailService, InvoiceBuilder invoiceBuilder,
+                          String SUBJECT, String TEXT) {
         this.invoiceDao = invoiceDao;
         this.emailService = emailService;
+        this.invoiceBuilder = invoiceBuilder;
 
-        //generatePdfFromHtml(parseThymeleafTemplate());
+        this.SUBJECT = SUBJECT;
+        this.TEXT = TEXT;
     }
 
     @Override
     public void run() {
-        //TODO add synchronized
-        //TODO create better invoice
-        //TODO change to original
-        //new DateTime().getDayOfMonth() == 1
-        if(true) {
+        DateTime todayDate = new DateTime();
+        if(todayDate.getDayOfMonth() == 1) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, -1);
-            calendar.set(Calendar.HOUR_OF_DAY, 23);
-            calendar.set(Calendar.MINUTE, 59);
-            calendar.set(Calendar.SECOND, 59);
-
-            DateTime monthEnd = new DateTime(calendar);
-
+            LocalDate monthEnd = new LocalDate(calendar);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-
-            DateTime monthStart = new DateTime(calendar);
+            LocalDate monthStart = new LocalDate(calendar);
 
             List<Invoice> invoices = invoiceDao.getInvoicesByDate(monthStart, monthEnd);
             List<Invoice> picked = new ArrayList<>();
@@ -72,60 +59,27 @@ public class InvoiceSending extends TimerTask {
                 }
                 sendBigInvoice(picked);
             }
+
+            invoiceDao.deleteByDate(monthStart, monthEnd);
+            invoiceBuilder.clearInvoiceNumber();
         }
     }
 
     private void sendBigInvoice(List<Invoice> clientInvoices) {
-        String pathToInvoiceFile = "";
         //TODO : change to original
         String clientEmail = "dominiksulik20@gmail.com";//clientInvoices.get(0).getClientEmail();
-        String subject = "Invoice";
-        StringBuilder text = new StringBuilder(clientInvoices.get(0).getClientFirstName() + clientInvoices.get(0).getClientLastName() + "\n");
+        String clientNameAndSurname = clientInvoices.get(0).getClientFirstName() + " " +
+                clientInvoices.get(0).getClientLastName();
 
-        for(Invoice invoice : clientInvoices)
-            text.append(invoice.getPaymentDate()).append(" ").append(invoice.getPrice()).append(" ").
-                    append(invoice.getSubscriptionStartDate()).append(" ").append(invoice.getSubscriptionEndDate()).append("\n");
-
-        emailService.sendMessageWithAttachment(clientEmail, subject, text.toString(), pathToInvoiceFile);
-    }
-
-    private String parseThymeleafTemplate() {
-        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
-        Context context = new Context();
-        context.setVariable("number", "42");
-
-        return templateEngine.process("invoice", context);
-    }
-
-    public void generatePdfFromHtml(String html) {
-        String outputFolder =  "thymeleaf.pdf";
-        OutputStream outputStream = null;
         try {
-            outputStream = new FileOutputStream(outputFolder);
-        } catch (FileNotFoundException e) {
+            String pathToInvoiceFile = invoiceBuilder.createPdfInvoice(clientNameAndSurname, clientInvoices);
+            emailService.sendEmailWithAttachment(clientEmail, SUBJECT, TEXT, pathToInvoiceFile);
+        } catch(InvoiceCreatingException e) {
+            System.out.println("Error during creating pdf invoice");
             e.printStackTrace();
-        }
-
-        ITextRenderer renderer = new ITextRenderer();
-        renderer.setDocumentFromString(html);
-        renderer.layout();
-        try {
-            renderer.createPDF(outputStream);
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            outputStream.close();
-        } catch (IOException e) {
+        } catch(MessageSendingException e) {
+            System.out.println("Error during sending email with invoice attachment");
             e.printStackTrace();
         }
     }
-
 }

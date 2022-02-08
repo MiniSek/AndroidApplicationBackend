@@ -13,13 +13,13 @@ public class PaymentOrder {
     private String orderId;
     private Integer premiumMonthNumber;
     private Double premiumPrice;
-    private DateTime creationDate;
+    private DateTime expirationDate;
 
-    public PaymentOrder(String orderId, Integer premiumMonthNumber, Double premiumPrice, DateTime creationDate) {
+    public PaymentOrder(String orderId, Integer premiumMonthNumber, Double premiumPrice, DateTime expirationDate) {
         this.orderId = orderId;
         this.premiumMonthNumber = premiumMonthNumber;
         this.premiumPrice = premiumPrice;
-        this.creationDate = creationDate;
+        this.expirationDate = expirationDate;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class PaymentOrder {
                 ", orderId='" + orderId + '\'' +
                 ", premiumMonthNumber=" + premiumMonthNumber +
                 ", premiumPrice=" + premiumPrice +
-                ", creationDate=" + creationDate +
+                ", creationDate=" + expirationDate +
                 '}';
     }
 }

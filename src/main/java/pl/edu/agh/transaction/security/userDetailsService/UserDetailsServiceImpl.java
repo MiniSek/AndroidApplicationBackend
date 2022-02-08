@@ -6,22 +6,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsServiceFilter {
-    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final ClientDao clientDao;
 
     @Autowired
-    public UserDetailsServiceImpl(ClientDaoServiceLayer clientDaoServiceLayer) {
-        this.clientDaoServiceLayer = clientDaoServiceLayer;
+    public UserDetailsServiceImpl(ClientDao clientDao) {
+        this.clientDao = clientDao;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         try {
-            Client client = clientDaoServiceLayer.getClientByEmail(email);
+            Client client = clientDao.getClientByEmail(email);
             return new User(client.getEmail(), client.getPassword(), client.getRoles());
         } catch(IllegalStateException e) {
             throw new UsernameNotFoundException(e.getMessage());
@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsSe
 
     @Override
     public boolean isClientLogged(String clientEmail) {
-        Client client = clientDaoServiceLayer.getClientByEmail(clientEmail);
+        Client client = clientDao.getClientByEmail(clientEmail);
         return client.getJwtToken() != null;
     }
 }

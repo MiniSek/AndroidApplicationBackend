@@ -29,11 +29,15 @@ import java.util.stream.Collectors;
 public class JwtTokenVerifierFilter extends OncePerRequestFilter {
     private final UserDetailsServiceFilter userDetailsServiceFilter;
 
-    private final String JWT_KEY = "secretsecretsecretsecretsecretsecretsecretsecret";
-    private final String JWT_AUTH_HEADER_PREFIX = "Bearer ";
+    private final String JWT_KEY;
+    private final String JWT_AUTH_HEADER_PREFIX;
 
-    public JwtTokenVerifierFilter(UserDetailsServiceFilter userDetailsServiceFilter) {
+    public JwtTokenVerifierFilter(UserDetailsServiceFilter userDetailsServiceFilter,
+                                  String JWT_KEY, String JWT_AUTH_HEADER_PREFIX) {
         this.userDetailsServiceFilter = userDetailsServiceFilter;
+
+        this.JWT_KEY = JWT_KEY;
+        this.JWT_AUTH_HEADER_PREFIX = JWT_AUTH_HEADER_PREFIX;
     }
 
     @Override

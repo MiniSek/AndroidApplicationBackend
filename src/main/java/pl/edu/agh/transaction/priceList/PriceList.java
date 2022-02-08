@@ -1,13 +1,11 @@
 package pl.edu.agh.transaction.priceList;
 
-import org.javatuples.Pair;
 import org.javatuples.Triplet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.transaction.exception.PriceListLoadException;
-import pl.edu.agh.transaction.priceList.priceListParserStrategy.PriceListParser;
-import pl.edu.agh.transaction.priceList.priceListParserStrategy.PriceListParserXlsx;
+import pl.edu.agh.transaction.priceList.priceListParser.PriceListParser;
 
 import java.util.List;
 
@@ -16,9 +14,8 @@ public class PriceList {
     private final List<Triplet<String, Integer, Double>> prices;
 
     @Autowired
-    public PriceList(@Value("${PRICE_LIST_FILE_REL_PATH}") String PRICE_LIST_FILE_REL_PATH) {
-        PriceListParser priceListParser = new PriceListParserXlsx(PRICE_LIST_FILE_REL_PATH);
-        prices = priceListParser.parsePriceList();
+    public PriceList(@Qualifier("txtParser") PriceListParser parser) {
+        prices = parser.parsePriceList();
     }
 
     public List<Triplet<String, Integer, Double>> getPrices() throws PriceListLoadException {
@@ -30,18 +27,18 @@ public class PriceList {
     public Double getPrice(String id) throws PriceListLoadException, IllegalArgumentException {
         if(prices == null)
             throw new PriceListLoadException("Price list wasn't loaded");
-        for(Triplet<String, Integer, Double> pair : prices)
-            if(pair.getValue0().equals(id))
-                return pair.getValue2();
+        for(Triplet<String, Integer, Double> triplet : prices)
+            if(triplet.getValue0().equals(id))
+                return triplet.getValue2();
         throw new IllegalArgumentException("Wrong id");
     }
 
     public Integer getMonthNumber(String id) throws PriceListLoadException, IllegalArgumentException {
         if(prices == null)
             throw new PriceListLoadException("Price list wasn't loaded");
-        for(Triplet<String, Integer, Double> pair : prices)
-            if(pair.getValue0().equals(id))
-                return pair.getValue1();
+        for(Triplet<String, Integer, Double> triplet : prices)
+            if (triplet.getValue0().equals(id))
+                return triplet.getValue1();
         throw new IllegalArgumentException("Wrong id");
     }
 }

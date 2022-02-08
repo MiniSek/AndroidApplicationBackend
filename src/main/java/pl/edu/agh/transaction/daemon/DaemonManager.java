@@ -1,90 +1,85 @@
 package pl.edu.agh.transaction.daemon;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoDaemon;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.daemon.clientRoleCleaner.ClientRoleCleaner;
 import pl.edu.agh.transaction.daemon.invoiceSending.InvoiceSending;
 import pl.edu.agh.transaction.daemon.orderCleaner.OrderCleaner;
 import pl.edu.agh.transaction.daemon.paymentReminder.PaymentReminder;
+import pl.edu.agh.transaction.daemon.utils.DaemonTimerHelper;
+import pl.edu.agh.transaction.daemon.utils.EmailService;
+import pl.edu.agh.transaction.daemon.utils.InvoiceBuilder;
 import pl.edu.agh.transaction.invoice.invoiceDao.InvoiceDao;
-import pl.edu.agh.transaction.order.orderDao.PaymentOrderDaoDaemon;
+import pl.edu.agh.transaction.order.orderDao.PaymentOrderDao;
 
 import java.util.Calendar;
 import java.util.Timer;
 
 @Service
 public class DaemonManager {
-    private final PaymentOrderDaoDaemon paymentOrderDaoDaemon;
-    private final ClientDaoDaemon clientDaoDaemon;
+    private final PaymentOrderDao paymentOrderDao;
+    private final ClientDao clientDao;
     private final EmailService emailService;
     private final InvoiceDao invoiceDao;
+    private final DaemonTimerHelper daemonTimerHelper;
+    private final InvoiceBuilder invoiceBuilder;
 
     private final Timer timer;
 
-    private final int orderCleanerHourOfDay = 1;
-    private final int orderCleanerMinute = 0;
-    private final int orderCleanerSecond = 0;
-    private final int orderCleanerMillisecond = 0;
+    private final String INVOICE_SENDING_SUBJECT;
+    private final String INVOICE_SENDING_TEXT;
 
-    private final int paymentReminderHourOfDay = 12;
-    private final int paymentReminderMinute = 0;
-    private final int paymentReminderSecond = 0;
-    private final int paymentReminderMillisecond = 0;
-
-    private final int invoiceSendingHourOfDay = 10;
-    private final int invoiceSendingMinute = 0;
-    private final int invoiceSendingSecond = 0;
-    private final int invoiceSendingMillisecond = 0;
-
-    private final int clientRoleCleanerHourOfDay = 0;
-    private final int clientRoleCleanerMinute = 0;
-    private final int clientRoleCleanerSecond = 0;
-    private final int clientRoleCleanerMillisecond = 0;
+    private final String PAYMENT_REMINDER_SUBJECT;
+    private final String PAYMENT_REMINDER_TEXT;
 
     @Autowired
-    public DaemonManager(PaymentOrderDaoDaemon paymentOrderDaoDaemon, ClientDaoDaemon clientDaoDaemon,
-                         EmailService emailService, InvoiceDao invoiceDao) {
-        this.paymentOrderDaoDaemon = paymentOrderDaoDaemon;
-        this.clientDaoDaemon = clientDaoDaemon;
+    public DaemonManager(PaymentOrderDao paymentOrderDao, ClientDao clientDao,
+                         EmailService emailService, InvoiceDao invoiceDao, DaemonTimerHelper daemonTimerHelper,
+                         InvoiceBuilder invoiceBuilder,
+                         @Value("${INVOICE_SENDING_SUBJECT}") String INVOICE_SENDING_SUBJECT,
+                         @Value("${INVOICE_SENDING_TEXT}") String INVOICE_SENDING_TEXT,
+                         @Value("${PAYMENT_REMINDER_SUBJECT}") String PAYMENT_REMINDER_SUBJECT,
+                         @Value("${PAYMENT_REMINDER_TEXT}") String PAYMENT_REMINDER_TEXT) {
+
+        this.paymentOrderDao = paymentOrderDao;
+        this.clientDao = clientDao;
         this.emailService = emailService;
         this.invoiceDao = invoiceDao;
+        this.daemonTimerHelper = daemonTimerHelper;
+        this.invoiceBuilder = invoiceBuilder;
+
+        this.INVOICE_SENDING_SUBJECT = INVOICE_SENDING_SUBJECT;
+        this.INVOICE_SENDING_TEXT = INVOICE_SENDING_TEXT;
+
+        this.PAYMENT_REMINDER_SUBJECT = PAYMENT_REMINDER_SUBJECT;
+        this.PAYMENT_REMINDER_TEXT = PAYMENT_REMINDER_TEXT;
 
         timer = new Timer(true);
+
         runDaemons();
     }
 
     private void runDaemons() {
         Calendar calendar = Calendar.getInstance();
 
-        //TODO fix it
-        //calendar.add(Calendar.DATE, 1);
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH)+1);
 
-        setCalendarTime(calendar, orderCleanerHourOfDay, orderCleanerMinute,
-                orderCleanerSecond, orderCleanerMillisecond);
-        timer.scheduleAtFixedRate(new OrderCleaner(paymentOrderDaoDaemon),
+        daemonTimerHelper.setOrderCleanerTime(calendar);
+        timer.scheduleAtFixedRate(new OrderCleaner(paymentOrderDao),
                 calendar.getTime(), 24 * 60 * 60 * 1000);
 
-        setCalendarTime(calendar, paymentReminderHourOfDay, paymentReminderMinute,
-                paymentReminderSecond, paymentReminderMillisecond);
-        timer.scheduleAtFixedRate(new PaymentReminder(clientDaoDaemon, emailService),
+        daemonTimerHelper.setPaymentReminderTime(calendar);
+        timer.scheduleAtFixedRate(new PaymentReminder(clientDao, emailService, PAYMENT_REMINDER_SUBJECT, PAYMENT_REMINDER_TEXT),
                 calendar.getTime(), 24 * 60 * 60 * 1000);
 
-        setCalendarTime(calendar, invoiceSendingHourOfDay, invoiceSendingMinute,
-                invoiceSendingSecond, invoiceSendingMillisecond);
-        timer.scheduleAtFixedRate(new InvoiceSending(invoiceDao, emailService),
-                calendar.getTime(), 24 * 60 * 60 * 1000);
+        daemonTimerHelper.setInvoiceSendingTime(calendar);
+        timer.scheduleAtFixedRate(new InvoiceSending(invoiceDao, emailService, invoiceBuilder,
+                        INVOICE_SENDING_SUBJECT, INVOICE_SENDING_TEXT), calendar.getTime(), 24 * 60 * 60 * 1000);
 
-        setCalendarTime(calendar, clientRoleCleanerHourOfDay, clientRoleCleanerMinute,
-                clientRoleCleanerSecond, clientRoleCleanerMillisecond);
-        timer.scheduleAtFixedRate(new ClientRoleCleaner(clientDaoDaemon),
+        daemonTimerHelper.setClientRoleCleanerTime(calendar);
+        timer.scheduleAtFixedRate(new ClientRoleCleaner(clientDao),
                 calendar.getTime(), 24 * 60 * 60 * 1000);
-    }
-
-    private void setCalendarTime(Calendar calendar, int hour, int minute, int second, int millisecond) {
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, second);
-        calendar.set(Calendar.MILLISECOND, millisecond);
     }
 }

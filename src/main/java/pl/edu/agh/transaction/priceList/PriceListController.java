@@ -1,6 +1,5 @@
 package pl.edu.agh.transaction.priceList;
 
-import org.javatuples.Pair;
 import org.javatuples.Triplet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

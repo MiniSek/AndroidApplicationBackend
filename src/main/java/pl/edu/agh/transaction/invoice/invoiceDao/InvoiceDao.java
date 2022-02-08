@@ -1,12 +1,12 @@
 package pl.edu.agh.transaction.invoice.invoiceDao;
 
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import pl.edu.agh.transaction.invoice.invoiceModels.Invoice;
 
 import java.util.List;
 
 public interface InvoiceDao {
-    void addInvoice(Invoice invoice);
-    void deleteByDate(DateTime startDate, DateTime endTime);
-    List<Invoice> getInvoicesByDate(DateTime startDate, DateTime endTime);
+    void insert(Invoice invoice);
+    void deleteByDate(LocalDate startDate, LocalDate endTime);
+    List<Invoice> getInvoicesByDate(LocalDate startDate, LocalDate endTime);
 }

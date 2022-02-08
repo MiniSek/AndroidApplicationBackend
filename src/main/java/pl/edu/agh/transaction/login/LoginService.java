@@ -12,8 +12,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
-import pl.edu.agh.transaction.client.clientDao.ClientDaoServiceLayer;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
 
@@ -23,7 +23,7 @@ import java.util.Date;
 @Service
 public class LoginService {
     private final AuthenticationManager authenticationManager;
-    private final ClientDaoServiceLayer clientDaoServiceLayer;
+    private final ClientDao clientDao;
 
     @Value("${JWT_KEY}")
     private String JWT_KEY;
@@ -35,9 +35,9 @@ public class LoginService {
     private String JWT_AUTH_HEADER_PREFIX;
 
     @Autowired
-    public LoginService(AuthenticationManager authenticationManager, ClientDaoServiceLayer clientDaoServiceLayer) {
+    public LoginService(AuthenticationManager authenticationManager, ClientDao clientDao) {
         this.authenticationManager = authenticationManager;
-        this.clientDaoServiceLayer = clientDaoServiceLayer;
+        this.clientDao = clientDao;
     }
 
     public ResponseEntity<String> login(LoginRequest loginRequest) {
@@ -45,7 +45,7 @@ public class LoginService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-            Client client = clientDaoServiceLayer.getClientByEmail(loginRequest.getEmail());
+            Client client = clientDao.getClientByEmail(loginRequest.getEmail());
 
             java.sql.Date expirationDate = java.sql.Date.valueOf(LocalDate.now().plusDays(JWT_VALID_DAYS));
 
@@ -63,7 +63,7 @@ public class LoginService {
             client.setJwtToken(jwtToken);
 
             String clientEmail = loginRequest.getEmail();
-            clientDaoServiceLayer.update(clientEmail, client);
+            clientDao.update(clientEmail, client);
 
             return new ResponseEntity<>("Login successful", headers, HttpStatus.OK);
         } catch(BadCredentialsException | UsernameNotFoundException e) {

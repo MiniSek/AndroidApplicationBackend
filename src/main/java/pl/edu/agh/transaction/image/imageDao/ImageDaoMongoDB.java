@@ -21,18 +21,22 @@ import pl.edu.agh.transaction.image.imageModels.imageType.ImageType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class ImageDaoMongoDB implements ImageDao {
     private final GridFsTemplate gridFsTemplate;
     private final GridFsOperations gridFsOperations;
 
+    private final Lock lock;
+
     @Autowired
     public ImageDaoMongoDB(GridFsTemplate gridFsTemplate, GridFsOperations gridFsOperations) {
         this.gridFsTemplate = gridFsTemplate;
         this.gridFsOperations = gridFsOperations;
+        this.lock = new ReentrantLock();
     }
-
 
     @Override
     public void insert(String imageType, MultipartFile file) throws IOException {
@@ -42,13 +46,19 @@ public class ImageDaoMongoDB implements ImageDao {
         dbObject.put("size", file.getSize());
         dbObject.put("imageType", imageType);
 
+        lock.lock();
         gridFsTemplate.store(file.getInputStream(), file.getOriginalFilename(), dbObject);
+        lock.unlock();
     }
 
     @Override
     public Image getImage(String imageName) throws IllegalDatabaseState, ObjectNotFoundException, IOException {
+        lock.lock();
+        List<String> imageNames = getImageNames();
+        lock.unlock();
+
         int numberOfImagesWithImageName = 0;
-        for(String name : getImageNames())
+        for(String name : imageNames)
             if(name.equals(imageName))
                 numberOfImagesWithImageName++;
 
@@ -58,9 +68,11 @@ public class ImageDaoMongoDB implements ImageDao {
         else if(numberOfImagesWithImageName == 0)
             throw new ObjectNotFoundException(String.format("There is no such image with name %s", imageName));
 
+        lock.lock();
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(imageName));
         GridFSFile image = gridFsTemplate.findOne(query);
+        lock.unlock();
         if(image == null)
             throw new ObjectNotFoundException(String.format("There is no such image with name %s", imageName));
 
@@ -75,12 +87,17 @@ public class ImageDaoMongoDB implements ImageDao {
     @Override
     public List<String> getImageNames() {
         List<String> imageNames = new ArrayList<>();
+        lock.lock();
         gridFsTemplate.find(new Query()).forEach(image -> imageNames.add(image.getFilename()));
+        lock.unlock();
         return imageNames;
     }
 
     @Override
     public boolean isImageNameTaken(String imageName) {
-        return getImageNames().contains(imageName);
+        lock.lock();
+        boolean isImageNameTaken = getImageNames().contains(imageName);
+        lock.unlock();
+        return isImageNameTaken;
     }
 }
