@@ -38,10 +38,11 @@ public class InvoiceBuilder {
 
         invoiceNumber++;
         String invoiceNumberStr = "";
-        if(todayDate.getMonthOfYear()+1 < 10)
-            invoiceNumberStr = invoiceNumber + "-" + "0" + todayDate.getMonthOfYear()+1 + "-" + todayDate.getYear();
+        int montOfYear = todayDate.getMonthOfYear();
+        if(montOfYear < 10)
+            invoiceNumberStr = invoiceNumber + "-0" + montOfYear + "-" + todayDate.getYear();
         else
-            invoiceNumberStr = invoiceNumber + "-" + todayDate.getMonthOfYear()+1 + "-" + todayDate.getYear();
+            invoiceNumberStr = invoiceNumber + "-" + montOfYear + "-" + todayDate.getYear();
 
         String filePath = System.getProperty("user.dir") + "\\data\\invoices\\" + invoiceNumberStr + ".pdf";
         String formattedInvoiceNumber = invoiceNumberStr.replace("-", "/");
@@ -84,11 +85,16 @@ public class InvoiceBuilder {
             table.setHeaderRows(1);
 
             int lp = 1;
+            String price;
             for (Invoice invoice : invoiceList) {
                 table.addCell(String.valueOf(lp));
                 table.addCell("Konto PREMIUM na okres " +
-                        invoice.getSubscriptionStartDate() + "-" + invoice.getSubscriptionEndDate());
-                table.addCell(invoice.getPrice() + "zl");
+                        invoice.getSubscriptionStartDate() + " - " + invoice.getSubscriptionEndDate());
+
+                price = String.valueOf(Math.round(invoice.getPrice() * 100.0) / 100.0);
+                if(price.split("\\.")[1].length() == 1)
+                    price += "0";
+                table.addCell(price + " zl");
                 lp++;
             }
             document.add(table);

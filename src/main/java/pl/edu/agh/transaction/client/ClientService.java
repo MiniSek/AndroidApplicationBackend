@@ -4,12 +4,15 @@ import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.transaction.client.clientDao.ClientDao;
 import pl.edu.agh.transaction.client.clientModels.Client;
 import pl.edu.agh.transaction.exception.IllegalDatabaseState;
 import pl.edu.agh.transaction.exception.ObjectNotFoundException;
+
+import static pl.edu.agh.transaction.client.clientModels.roles.ClientRole.PREMIUM;
 
 
 @Service
@@ -25,7 +28,10 @@ public class ClientService {
         try {
             String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Client client = clientDao.getClientByEmail(email);
-            return new ResponseEntity<>(client.getSubscriptionEndDate(), HttpStatus.OK);
+            if(client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())))
+                return new ResponseEntity<>(client.getSubscriptionEndDate(), HttpStatus.OK);
+            else
+                return new ResponseEntity<>(null, HttpStatus.OK);
         } catch(IllegalDatabaseState e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch(ObjectNotFoundException e) {

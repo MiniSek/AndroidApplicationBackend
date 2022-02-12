@@ -30,7 +30,7 @@ public class PaymentReminder extends TimerTask {
     public void run() {
         LocalDate todayDate = new LocalDate();
         for (Client client : clientDao.getClients())
-            if (client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())) &&
+            if (client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())) && client.getSubscriptionEndDate() != null &&
                     client.getSubscriptionEndDate().minusDays(2).isBefore(todayDate))
                 try {
                     emailService.sendEmail(client.getEmail(), SUBJECT, TEXT);

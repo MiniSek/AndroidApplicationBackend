@@ -24,7 +24,7 @@ public class ClientRoleCleaner extends TimerTask {
     public void run() {
         LocalDate todayDate = new LocalDate();
         for (Client client : clientDao.getClients())
-            if(client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())) &&
+            if(client.getRoles().contains(new SimpleGrantedAuthority(PREMIUM.name())) && client.getSubscriptionEndDate() != null &&
                     client.getSubscriptionEndDate().isBefore(todayDate)) {
 
                 String clientEmail = client.getEmail();

@@ -2,6 +2,8 @@ package pl.edu.agh.transaction.daemon.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.transaction.exception.MessageSendingException;
 
@@ -49,6 +51,14 @@ public class EmailService {
         try {
             MimeMessage message = buildSimpleMessage(recipientEmail, subject, body);
 
+            BodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setText(body);
+
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(messageBodyPart);
+
+            message.setContent(multipart);
+
             Transport.send(message);
         } catch (Exception e) {
             throw new MessageSendingException(e);
@@ -64,8 +74,12 @@ public class EmailService {
             MimeBodyPart attachmentBodyPart = new MimeBodyPart();
             attachmentBodyPart.attachFile(new File(pathToFile));
 
+            BodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setText(body);
+
             Multipart multipart = new MimeMultipart();
             multipart.addBodyPart(attachmentBodyPart);
+            multipart.addBodyPart(messageBodyPart);
 
             message.setContent(multipart);
 
@@ -88,7 +102,6 @@ public class EmailService {
             message.setSentDate(new Date());
 
             message.setSubject(subject, "UTF-8");
-            message.setText(body, "UTF-8");
 
             return message;
     }

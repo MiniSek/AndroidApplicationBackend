@@ -57,13 +57,6 @@ public class RegisterService {
             if(!(isLetter(lastName.charAt(i)) || isDash(lastName.charAt(i))))
                 return false;
 
-        for(int i=0; i<email.length(); i++)
-            if(!(isLetter(email.charAt(i)) || isDash(email.charAt(i)) ||
-                    isDigit(email.charAt(i)) || email.charAt(i) == '@'))
-                return false;
-        if(!email.contains("@") || (email.indexOf('@') > 0 && email.indexOf('@') < email.length()-1))
-            return false;
-
         for(int i=0; i<password.length(); i++)
             if(!(isLetter(password.charAt(i)) || isDash(password.charAt(i)) || isDigit(password.charAt(i))))
                 return false;

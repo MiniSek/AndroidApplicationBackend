@@ -24,6 +24,16 @@ public class ImageController {
         return imageService.addImage(imageType, image);
     }
 
+    @PostMapping(value = "image_type")
+    public ResponseEntity<String> changeImageType(@RequestParam("imageType") String imageType, @RequestParam("image") String image) {
+        return imageService.changeImageType(imageType, image);
+    }
+
+    @PostMapping(value = "image_remove")
+    public ResponseEntity<String> removeImage(@RequestParam("image") String image) {
+        return imageService.removeImage(image);
+    }
+
     @GetMapping(value = "image/{name}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> getImage(@PathVariable String name) {
         return imageService.getImage(name);

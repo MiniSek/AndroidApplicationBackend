@@ -45,7 +45,7 @@ public class PremiumService {
         this.paymentProvider = paymentProvider;
     }
 
-    public ResponseEntity<String> buyPremium(String premiumId) {
+    public ResponseEntity<String> buyPremium(String premiumId, String orderId) {
         Client client;
         try {
             String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -69,14 +69,9 @@ public class PremiumService {
         }
 
         try {
-            String orderId = paymentProvider.createOrder(premiumPrice);
-            String creationTime = paymentProvider.getCreationTime(orderId);
-            paymentOrderDao.insert(
-                    new PaymentOrder(orderId, premiumMonthNumber, premiumPrice, new DateTime(creationTime).plusDays(3)));
-            String paymentLink = paymentProvider.getPaymentLink(orderId);
-
-            return new ResponseEntity<>(paymentLink, HttpStatus.OK);
-        } catch (IOException | PayPalClientException e) {
+            paymentOrderDao.insert(new PaymentOrder(orderId, premiumMonthNumber, premiumPrice, new DateTime().plusDays(3)));
+            return new ResponseEntity<>(null, HttpStatus.OK);
+        } catch (PayPalClientException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Payment failure", HttpStatus.INTERNAL_SERVER_ERROR);
         }

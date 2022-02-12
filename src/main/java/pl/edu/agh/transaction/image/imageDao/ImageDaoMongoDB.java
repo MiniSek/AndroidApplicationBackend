@@ -2,8 +2,10 @@ package pl.edu.agh.transaction.image.imageDao;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.apache.poi.util.IOUtils;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -19,6 +21,7 @@ import pl.edu.agh.transaction.image.imageModels.Image;
 import pl.edu.agh.transaction.image.imageModels.imageType.ImageType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -48,6 +51,53 @@ public class ImageDaoMongoDB implements ImageDao {
 
         lock.lock();
         gridFsTemplate.store(file.getInputStream(), file.getOriginalFilename(), dbObject);
+        lock.unlock();
+    }
+
+    @Override
+    public void update(String imageType, String imageName) throws ObjectNotFoundException {
+        lock.lock();
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("filename").is(imageName));
+        GridFSFile image = gridFsTemplate.findOne(query);
+        if(image == null)
+            throw new ObjectNotFoundException("There is no such image");
+        String id = image.getId().asObjectId().getValue().toString();
+
+        InputStream file = null;
+        try {
+            file = gridFsOperations.getResource(image).getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Document metadata = image.getMetadata();
+        DBObject dbObject = new BasicDBObject();
+        dbObject.put("imageName", metadata.get("imageName"));
+        dbObject.put("contentType", metadata.get("contentType"));
+        dbObject.put("size", metadata.get("size"));
+        dbObject.put("imageType", imageType);
+
+        gridFsTemplate.store(file, (String)metadata.get("imageName"), dbObject);
+
+        Query queryToDelete = new Query();
+        queryToDelete.addCriteria(Criteria.where("_id").is(id));
+        gridFsTemplate.delete(queryToDelete);
+
+        lock.unlock();
+    }
+
+    @Override
+    public void remove(String imageName) throws ObjectNotFoundException {
+        lock.lock();
+        Query query = new Query();
+        query.addCriteria(Criteria.where("filename").is(imageName));
+        GridFSFile image = gridFsTemplate.findOne(query);
+        if(image == null)
+            throw new ObjectNotFoundException("There is no such image");
+
+        gridFsTemplate.delete(query);
         lock.unlock();
     }
 

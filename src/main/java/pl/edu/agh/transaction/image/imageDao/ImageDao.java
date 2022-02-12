@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface ImageDao {
     void insert(String imageType, MultipartFile file) throws IOException;
+    void update(String imageType, String imageName);
+    void remove(String imageName);
     Image getImage(String imageName) throws IOException;
     List<String> getImageNames();
     boolean isImageNameTaken(String imageName);

@@ -64,7 +64,7 @@ public class DaemonManager {
     private void runDaemons() {
         Calendar calendar = Calendar.getInstance();
 
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH)+1);
+        //calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH)+1);
 
         daemonTimerHelper.setOrderCleanerTime(calendar);
         timer.scheduleAtFixedRate(new OrderCleaner(paymentOrderDao),

@@ -33,9 +33,9 @@ public class InvoiceSending extends TimerTask {
     @Override
     public void run() {
         DateTime todayDate = new DateTime();
-        if(todayDate.getDayOfMonth() == 1) {
+        if(todayDate.getDayOfMonth() >= 1) {
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DATE, -1);
+            //calendar.add(Calendar.DATE, -1);
             LocalDate monthEnd = new LocalDate(calendar);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
             LocalDate monthStart = new LocalDate(calendar);
@@ -66,8 +66,7 @@ public class InvoiceSending extends TimerTask {
     }
 
     private void sendBigInvoice(List<Invoice> clientInvoices) {
-        //TODO : change to original
-        String clientEmail = "dominiksulik20@gmail.com";//clientInvoices.get(0).getClientEmail();
+        String clientEmail = clientInvoices.get(0).getClientEmail();
         String clientNameAndSurname = clientInvoices.get(0).getClientFirstName() + " " +
                 clientInvoices.get(0).getClientLastName();
 

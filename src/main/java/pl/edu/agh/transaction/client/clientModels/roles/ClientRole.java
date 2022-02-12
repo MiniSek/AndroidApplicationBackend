@@ -9,7 +9,8 @@ import static pl.edu.agh.transaction.image.imageModels.imageType.ImageType.*;
 
 public enum ClientRole {
     NON_PREMIUM(Sets.newHashSet(NON_PREMIUM_TYPE)),
-    PREMIUM(Sets.newHashSet(NON_PREMIUM_TYPE, PREMIUM_TYPE));
+    PREMIUM(Sets.newHashSet(NON_PREMIUM_TYPE, PREMIUM_TYPE)),
+    ADMIN(Sets.newHashSet(NON_PREMIUM_TYPE, PREMIUM_TYPE));
 
     private final Set<ImageType> imageTypes;
 

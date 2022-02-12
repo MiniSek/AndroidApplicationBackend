@@ -38,6 +38,7 @@ public class SimplePayPalProvider implements PaymentProvider {
     @Override
     public String createOrder(Double price) throws IOException, PayPalClientException {
         OrderRequest orderRequest = new OrderRequest();
+
         orderRequest.checkoutPaymentIntent(INTENT);
         List<PurchaseUnitRequest> purchaseUnits = new ArrayList<>();
         purchaseUnits.add(
