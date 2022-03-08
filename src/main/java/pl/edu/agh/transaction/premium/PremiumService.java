@@ -45,7 +45,7 @@ public class PremiumService {
         this.paymentProvider = paymentProvider;
     }
 
-    public ResponseEntity<String> buyPremium(String premiumId, String orderId) {
+    public ResponseEntity<String> buyPremium(String premiumId) {
         Client client;
         try {
             String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -69,9 +69,14 @@ public class PremiumService {
         }
 
         try {
-            paymentOrderDao.insert(new PaymentOrder(orderId, premiumMonthNumber, premiumPrice, new DateTime().plusDays(3)));
-            return new ResponseEntity<>(null, HttpStatus.OK);
-        } catch (PayPalClientException e) {
+            String orderId = paymentProvider.createOrder(premiumPrice);
+            String creationTime = paymentProvider.getCreationTime(orderId);
+            paymentOrderDao.insert(
+                    new PaymentOrder(orderId, premiumMonthNumber, premiumPrice, new DateTime(creationTime).plusDays(3)));
+            String paymentLink = paymentProvider.getPaymentLink(orderId);
+
+            return new ResponseEntity<>(paymentLink, HttpStatus.OK);
+        } catch (IOException | PayPalClientException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Payment failure", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -115,7 +120,7 @@ public class PremiumService {
 
         LocalDate todayDate = new LocalDate();
         LocalDate subscriptionStartDate, subscriptionEndDate, invoiceSubscriptionStartDate, invoiceSubscriptionEndDate;
-        
+
         if(client.getSubscriptionEndDate() == null || todayDate.isAfter(client.getSubscriptionEndDate())) {
             subscriptionStartDate = todayDate;
             subscriptionEndDate = todayDate.plusMonths(premiumMonthNumber);

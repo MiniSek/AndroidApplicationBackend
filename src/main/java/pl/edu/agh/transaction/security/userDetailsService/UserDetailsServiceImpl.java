@@ -29,8 +29,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsSe
     }
 
     @Override
-    public boolean isClientLogged(String clientEmail) {
+    public boolean isClientLogged(String clientEmail, String token) {
         Client client = clientDao.getClientByEmail(clientEmail);
-        return client.getJwtToken() != null;
+        return client.getJwtToken().equals(token);
     }
 }

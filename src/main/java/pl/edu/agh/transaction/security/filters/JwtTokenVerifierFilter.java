@@ -72,7 +72,7 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
                 Authentication auth = new UsernamePasswordAuthenticationToken(email, null, simpleGrantedAuthorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-                if(!userDetailsServiceFilter.isClientLogged(email))
+                if(!userDetailsServiceFilter.isClientLogged(email, jwtToken))
                     throw new AuthenticationException(String.format("Token %s was logged out", jwtToken));
             } catch(JwtException | IllegalDatabaseState | ObjectNotFoundException | AuthenticationException e) {
                 throw new IllegalStateException(String.format("Token %s cannot be trusted", jwtToken));

@@ -18,8 +18,7 @@ public class PremiumController {
     @PostMapping(value = "buy_premium")
     public ResponseEntity<String> buyPremium(@RequestBody ObjectNode buyPremiumRequest) {
         String premiumId = buyPremiumRequest.get("premiumId").toString();
-        String orderId = buyPremiumRequest.get("orderId").toString();
-        return premiumService.buyPremium(premiumId.substring(1, premiumId.length()-1), orderId.substring(1, orderId.length()-1));
+        return premiumService.buyPremium(premiumId.substring(1, premiumId.length()-1));
     }
 
     @PostMapping(value = "approve_payment")
